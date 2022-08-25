@@ -15,10 +15,11 @@ router.post('/createuser',[
     body('password',"Password must be greater then 5 charecters").isLength({ min: 5 }),
 
 ], async (req, res) => {
-   
+  let success= false;
+  
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({success, errors: errors.array() });
     }
     try {
         
@@ -26,7 +27,8 @@ router.post('/createuser',[
     let user =await User.findOne({email: req.body.email});
     if(user)
     {
-        return res.status(400).json({error:'User Already Exits'})
+      
+        return res.status(400).json({success,error:'User Already Exits'})
     }
     const salt = await bcrypt.genSaltSync(10);
     const secPass = await bcrypt.hash(req.body.password,salt);
@@ -43,12 +45,12 @@ router.post('/createuser',[
       }
 
       const authtoken = jwt.sign(data, JWT_Secret);
-     
+     success=true;
 
     //   .then(user => res.json(user)).catch(err=>{console.log(err);
     //     res.json({error: 'Please enter a Unique Email', message: err.message})})
     // res.send(req.body);
-res.json({authtoken})
+res.json({success,authtoken})
 } catch (error) {
         console.error(error.message);
         res.status(500).send("Some Error Occured");
@@ -61,7 +63,7 @@ res.json({authtoken})
     body('password',"Password cannot be blanked").exists(),
 
 ], async (req, res) => {
-   
+  let success= false
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -73,13 +75,13 @@ res.json({authtoken})
     let user =await User.findOne({email});
     if(!user)
     {
-        return res.status(400).json({error:'UserName or Password is not Correct...'});
+        return res.status(400).json({success,error:'UserName or Password is not Correct...'});
     }
     
     const passwordCompare = await bcrypt.compare(password,user.password);
     if(!passwordCompare)
     {
-      return res.status(400).json({error:'UserName or Password is not Correct...'});
+      return res.status(400).json({success,error:'UserName or Password is not Correct...'});
     }
       const data ={
         user: {
@@ -88,8 +90,8 @@ res.json({authtoken})
       }
 
       const authtoken = jwt.sign(data, JWT_Secret);
-    
-res.json({authtoken})
+      success=true;
+res.json({success,authtoken})
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Some Error Occured");
